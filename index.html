@@ -20,7 +20,7 @@
 				padding-top: 30px;
 			}
 			#box.isBigger {
-				box-shadow: 0 0 35px rgba(0,0,0, .9);
+				box-shadow: 0 0 35px rgba(0,0,0, .8);
 			}
 		</style>
 	</head>
@@ -55,6 +55,19 @@
 			constructor.prototype.returnElm = function(){
 				return this;
 			}
+			constructor.prototype.timer = function(callback, delay) {
+			    var timerId, start, remaining = delay;
+			   	this.resume = function() {
+			        start = new Date();
+			        timerId = window.setTimeout(callback, remaining);
+			    }
+			    this.pause = function() {
+			        window.clearTimeout(timerId);
+			        remaining -= new Date() - start;
+			    }
+			    this.resume();
+			    return this;
+			}
 			constructor.prototype.growAndCenter = function(options) {
 				var settings = {
 					trigger: 'click',
@@ -75,19 +88,19 @@
 				var animateToHeight = Math.ceil(this.elmHeight * .9);
 				$(document).on(settings.trigger, function(e){
 					var keycode = (e.keyCode ? e.keyCode : e.which);
-					console.log((window.innerHeight/2) - (constructor.elm.height() + animateToHeight))
 					if(constructor.elm.is(':animated') ) return;
 					if( $(document).data('events').keydown.namespace !== "spacebar" && keycode !== 32) return;
 					constructor.elm.animate({
 						width: (bigger ? '-=' : '+=') + animateToWidth,
 						height: (bigger ? '-=' : '+=') +  animateToHeight,
-						left: bigger ? constructor.elmPosLeft : (window.innerWidth/2) - (constructor.elm.width() + animateToWidth),
-						top: bigger ? constructor.elmPosTop : (window.innerHeight/2)  - (constructor.elm.height() +animateToHeight)
-					}, 200,function(){
+						left: bigger ? constructor.elmPosLeft : (window.innerWidth/2) - ((constructor.elm.outerWidth() + animateToWidth)/2),
+						top: bigger ? constructor.elmPosTop : (window.innerHeight/2)  - ((constructor.elm.outerHeight() +animateToHeight)/2),
+						fontSize: (bigger ? '-=' : '+=') +30
+					}, 300,function(){
 						settings.callback.call(constructor, bigger);
 						return constructor;
 					});
-					$(constructor)[bigger ? 'removeClass' : 'addClass']('isBigger')
+					$(constructor.elm)[bigger ? 'removeClass' : 'addClass']('isBigger')
 					bigger = !bigger;
 				});
 				return this;
