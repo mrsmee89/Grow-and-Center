@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Core Animations</title>
+		<style type="text/css">
+		body ,html{padding: 0;margin: 0;}
+			#box {
+				width: 250px;
+				height: 200px;
+				/*margin: 50px auto;*/
+				background: gray;
+				position: relative;
+				border-radius: 8px;
+				box-shadow: 0 0 3px rgba(0,0,0, .8);
+				color: #fff;
+				text-shadow: 0 2px 0 rgba(0,0,0, .5);
+				font-size: 20px;
+				text-align: center;
+				font-family: lucida grande;
+				padding-top: 30px;
+			}
+			#box.isBigger {
+				box-shadow: 0 0 35px rgba(0,0,0, .9);
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			Hello I'm a box
+		</div><!-- /box -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+		<script>
+			var alert = function(p){
+				console.log(p)
+			}
+			jQuery.fx.interval = 0;
+			var constructor = function(elm) {
+				this.elm = (typeof elm == jQuery ? elm : $(elm));
+				this.elmWidth = this.elm.outerWidth();
+				this.elmHeight = this.elm.outerHeight();
+				this.elmPaddingWidth = parseInt(this.elm.css('paddingRight'),10) + parseInt(this.elm.css('paddingLeft'),10);
+				this.elmPosTop  = this.elm.position().top;
+				this.elmPosLeft  = this.elm.position().left;
+				this.isCentered = this.elm.css('marginLeft') == 'auto';
+				return this;
+			}
+			var animate = function(elm) {
+				return new constructor(elm);
+			}
+			constructor.prototype.mapEvents = function(name){
+				if(name == 'spacebar') return 'keyup';
+				else return name;
+			}
+			// utilities
+			constructor.prototype.returnElm = function(){
+				return this;
+			}
+			constructor.prototype.growAndCenter = function(options) {
+				var settings = {
+					trigger: 'click',
+					callback : function() {},
+					trigger : ''
+				}
+				if(!$.isPlainObject(arguments) && arguments.length == 1 && typeof options != "function") settings.trigger = options;
+				else if(!$.isPlainObject(arguments) && arguments.length == 1 && typeof options == "function") settings.callback = options;
+				else if($.isPlainObject(arguments)) $.extend(settings,options);
+				else {
+					settings.trigger = arguments[0]
+					settings.callback = arguments[1]
+				}
+				var bigger = false;
+				var callback = callback || function(){};
+				var constructor = this;
+				var animateToWidth = Math.ceil(this.elmWidth * .9);
+				var animateToHeight = Math.ceil(this.elmHeight * .9);
+				$(document).on(settings.trigger, function(e){
+					var keycode = (e.keyCode ? e.keyCode : e.which);
+					console.log((window.innerHeight/2) - (constructor.elm.height() + animateToHeight))
+					if(constructor.elm.is(':animated') ) return;
+					if( $(document).data('events').keydown.namespace !== "spacebar" && keycode !== 32) return;
+					constructor.elm.animate({
+						width: (bigger ? '-=' : '+=') + animateToWidth,
+						height: (bigger ? '-=' : '+=') +  animateToHeight,
+						left: bigger ? constructor.elmPosLeft : (window.innerWidth/2) - (constructor.elm.width() + animateToWidth),
+						top: bigger ? constructor.elmPosTop : (window.innerHeight/2)  - (constructor.elm.height() +animateToHeight)
+					}, 200,function(){
+						settings.callback.call(constructor, bigger);
+						return constructor;
+					});
+					$(constructor)[bigger ? 'removeClass' : 'addClass']('isBigger')
+					bigger = !bigger;
+				});
+				return this;
+			}
+			animate('#box').growAndCenter({
+				trigger: 'keydown.spacebar',
+				callback : function() {
+				}
+			})
+		</script>
+	</body>
+</html>
