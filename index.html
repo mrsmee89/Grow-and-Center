@@ -72,7 +72,7 @@
 				var settings = {
 					trigger: 'click',
 					callback : function() {},
-					trigger : ''
+					triggerArea : this.elm
 				}
 				if(!$.isPlainObject(arguments) && arguments.length == 1 && typeof options != "function") settings.trigger = options;
 				else if(!$.isPlainObject(arguments) && arguments.length == 1 && typeof options == "function") settings.callback = options;
@@ -86,10 +86,12 @@
 				var constructor = this;
 				var animateToWidth = Math.ceil(this.elmWidth * .9);
 				var animateToHeight = Math.ceil(this.elmHeight * .9);
-				$(document).on(settings.trigger, function(e){
-					var keycode = (e.keyCode ? e.keyCode : e.which);
+				$(settings.triggerArea).on(settings.trigger, function(e){
 					if(constructor.elm.is(':animated') ) return;
-					if( $(document).data('events').keydown.namespace !== "spacebar" && keycode !== 32) return;
+					if($(settings.triggerArea).data('events').keypress) {
+						var keycode = (e.keyCode ? e.keyCode : e.which);
+						if( $(settings.triggerArea).data('events').keypress.namespace !== "spacebar" && keycode !== 32) return;
+					}
 					constructor.elm.animate({
 						width: (bigger ? '-=' : '+=') + animateToWidth,
 						height: (bigger ? '-=' : '+=') +  animateToHeight,
@@ -98,15 +100,15 @@
 						fontSize: (bigger ? '-=' : '+=') +30
 					}, 300,function(){
 						settings.callback.call(constructor, bigger);
-						return constructor;
+						$(constructor.elm)[bigger ? 'addClass' : 'removeClass']('isBigger');
 					});
-					$(constructor.elm)[bigger ? 'removeClass' : 'addClass']('isBigger')
 					bigger = !bigger;
 				});
 				return this;
 			}
 			animate('#box').growAndCenter({
-				trigger: 'keydown.spacebar',
+				trigger: 'keypress.spacebar',
+				triggerArea : document,
 				callback : function() {
 				}
 			})
